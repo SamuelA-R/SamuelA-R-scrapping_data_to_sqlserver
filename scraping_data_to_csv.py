@@ -37,9 +37,35 @@ try:
     min_52_sem = dados01[5]  # Segundo elemento
     max_52_sem = dados01[7]  # Terceiro elemento
 
+
     dados02 = soup.find_all('td', class_="data w3")
     valor_mercado = dados02[0]
     numero_cotas = dados02[1]
+    numero_cotas = dados02[1]
+    numero_cotas = dados02[1]
+    
+    #Dados de oscilação
+    dados03 = soup.find_all('span', class_='oscil')
+    osc_dia = dados03[0]
+    osc_mes = dados03[1]
+    osc_30dias = dados03[2]
+    osc_12meses = dados03[3]
+    osc_2025 = dados03[4]
+    osc_2024 = dados03[5]
+    osc_2023 = dados03[6]
+    osc_2022 = dados03[7]
+    osc_2021 = dados03[8]
+    osc_2020 = dados03[9]
+
+    #Dados indicadores
+    dados04 = soup.find_all('td', class_='data w2')
+    FFO_YIELD = dados04[0]
+    PVP = dados04[3]
+    FF0COTA = dados04[1]
+    DIVIDENDOCOTA = dados04[2]
+    VPCOTA = dados04[4]
+    DIV_YIELD = dados01[18]
+    
 
     #min_52_sem = soup.find('td', class_="data")[1]
     #max_52_sem = soup.find('td', class_="data")[2]
@@ -52,7 +78,20 @@ try:
         "Min 52 sem": min_52_sem.text.strip() if min_52_sem else 'Não encontrado',
         "Max 52 sem": max_52_sem.text.strip() if max_52_sem else 'Não encontrado',
         'Valor de mercado': valor_mercado.text.strip() if valor_mercado else 'Não encontrado',
-        'Nº de cotas': numero_cotas.text.strip() if numero_cotas else 'Não encontrado'
+        'Nº de cotas': numero_cotas.text.strip() if numero_cotas else 'Não encontrado',
+        'Oscilação do dia' : osc_dia.text.strip() if osc_dia else 'Não encontrado',
+        'Oscilação de 30 dias' : osc_30dias.text.strip() if osc_30dias else 'Não encontrado',
+        'Oscilação do mês' : osc_mes.text.strip() if osc_mes else 'Não encontrado',
+        'Oscilação 12 meses' : osc_12meses.text.strip() if osc_12meses else 'Não encontrado',
+        'Oscilação 2025' : osc_2025.text.strip() if osc_2025 else 'Não encontrado',
+        'Oscilação 2024' : osc_2024.text.strip() if osc_2024 else 'Não encontrado',
+        'Oscilação 2023' : osc_2023.text.strip() if osc_2023 else 'Não encontrado',
+        'Oscilação 2022' : osc_2022.text.strip() if osc_2022 else 'Não encontrado',
+        'Oscilação 2021' : osc_2021.text.strip() if osc_2021 else 'Não encontrado',
+        'Oscilação 2020' : osc_2020.text.strip() if osc_2020 else 'Não encontrado',
+        'FFO Yield' : FFO_YIELD.text.strip() if FFO_YIELD else 'Não encontrado',
+        'Div. Yield' : DIV_YIELD.text.strip() if DIV_YIELD else 'Não encontrado',
+        'PV/VP' : PVP.text.strip() if PVP else 'Não encontrado'
         }
 
     print("✅ Dados extraídos com sucesso")
@@ -77,3 +116,6 @@ with open(csv_file, "a", newline="", encoding="utf-8") as f:
     writer.writerow(dados_acoes)
 
 print("✅ Dados adicionados em 'dados_acoes.csv'")'''
+
+
+#print(dados01)
