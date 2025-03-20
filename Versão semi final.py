@@ -40,7 +40,15 @@ for acao in lista_acoes:
                     for i in range(0, len(colunas), 2):
                         if i + 1 < len(colunas):
                             chave = colunas[i].get_text(strip=True).replace('?', '')
-                            valor = colunas[i + 1].get_text(strip=True).replace('.', ',')
+                            valor = colunas[i + 1].get_text(strip=True).replace('.', ',').replace('-', '0')
+                            
+                            # Verificando se a chave já existe no dicionário e modificando o nome da chave
+                            if chave in dados_dict:
+                                contador = 1
+                                while f"{chave}_{contador}" in dados_dict:
+                                    contador += 1
+                                chave = f"{chave}_{contador}"
+
                             dados_dict[chave] = valor  
 
         # Adicionando os dados ao DataFrame
@@ -51,13 +59,10 @@ for acao in lista_acoes:
         print(f"Erro ao acessar {acao}: {page.status_code}")
     
     # Pausa para evitar bloqueios (recomendado entre 1 a 3 segundos)
-    time.sleep(2)
+    # time.sleep(1)
 
 # Concatenando todos os DataFrames
 df_final = pd.concat(lista_dfs, ignore_index=True)
 
 # Exibindo o DataFrame organizado
-print(df_final.head())
-
-# Salvando os dados em um arquivo Excel
-df_final.to_excel('dados_das_acoes.csv', index=False)
+print(df_final.columns)
