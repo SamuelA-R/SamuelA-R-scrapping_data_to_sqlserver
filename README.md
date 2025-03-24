@@ -1,7 +1,7 @@
 # Web Scraping de Dados Financeiros Fundamentalista
 ### Objetivo: Extrair e tratar os dados, Armazená-los no SQL Server, analisar os dados e disponibilizá-los de forma clara para acesso e visualização de insights utilizando Streamlit
 
-📌 ***Tecnologias: Python (Requests, BeautifulSoup, Pandas, Json), SQL SERVER para armazenar os dados e Streamlit (relatório para visualização dos dados).***
+📌 ***Tecnologias: Python (Requests, BeautifulSoup, Pandas, JSON), SQL SERVER para armazenar os dados e Streamlit (relatório para visualização dos dados).***
 
 🔹 ***Tarefas:**
 - Criar um scraper para coletar dados.  
@@ -43,6 +43,21 @@ if page.status_code == 200:
 else:
     print(f"Erro ao acessar a página: {page.status_code}")
 soup = BeautifulSoup(page.text, 'html.parser')
+```
+- Agora, criamos uma lista para armazenar o código de todas as ações listadas na bolsa, que será utilizada na extração no site Fundamentos. A função for vai percorrer toda a lista, utilizando o método find_all, que vai encontrar todas as tags <strong>
+```python
+dados = soup.find_all('strong')
+lista = []
+for data in dados:
+    lista.append(data.text)
+```
+
+- Salvamos os dados extraidos em um arquivo de texto acoes.txt, onde cada ação é escrita em uma nova linha:
+  
+```python
+with open("acoes.txt", "w") as f:
+    for item in lista:
+        f.write(item + '\n')  # Atualiza a lista de ações
 ```
 ## 2️⃣ Integração dos dados no SQL Server
 
