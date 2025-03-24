@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+import json
 
 # Lendo os tickers do arquivo
 with open("acoes.txt", "r") as fundamentus_file:
@@ -13,9 +14,9 @@ headers = {
 }
 
 # Lista para armazenar os dados de cada ação
-lista_dfs = []
+dados_json = []
 
-# Loop sobre cada ação
+# Loop sobre cada ação para extrair os dados
 for acao in lista_acoes:
     url = f"https://www.fundamentus.com.br/detalhes.php?papel={acao}"
     
@@ -40,7 +41,7 @@ for acao in lista_acoes:
                     for i in range(0, len(colunas), 2):
                         if i + 1 < len(colunas):
                             chave = colunas[i].get_text(strip=True).replace('?', '')
-                            valor = colunas[i + 1].get_text(strip=True).replace('.', ',').replace('-', '0')
+                            valor = colunas[i + 1].get_text(strip=True).replace('-', '0').replace('.', '').replace(',','.').replace('%', '')
                             
                             # Verificando se a chave já existe no dicionário e modificando o nome da chave
                             if chave in dados_dict:
@@ -51,18 +52,40 @@ for acao in lista_acoes:
 
                             dados_dict[chave] = valor  
 
-        # Adicionando os dados ao DataFrame
-        df_temp = pd.DataFrame([dados_dict])  
-        lista_dfs.append(df_temp)  
-
+        # Adicionando os dados ao JSON
+        dados_json.append(dados_dict)
+    
     else:
         print(f"Erro ao acessar {acao}: {page.status_code}")
     
     # Pausa para evitar bloqueios (recomendado entre 1 a 3 segundos)
-    # time.sleep(1)
+    time.sleep(0.2)
 
-# Concatenando todos os DataFrames
-df_final = pd.concat(lista_dfs, ignore_index=True)
+# Convertendo os dados para JSON
+json_data = json.dumps(dados_json, ensure_ascii=False)
+#json_data.to_json('json_final.json')
 
-# Exibindo o DataFrame organizado
-print(df_final.columns)
+# Carregar JSON
+df = pd.read_json(json_data, orient="records")
+
+
+
+#-------------------------------- Tratamento dos dados ---------------------------------------#
+
+# Remover as primeiras 4 linhas e resetar o índice
+df = df.drop(index=df.index[0:4]).reset_index(drop=True)
+df = df[df['Papel'].notna() & (df['Papel'] != "")]
+
+def converter_tipo(table):
+    for i in df.columns:
+        try:
+            table[i] = table[i].astype(float)
+
+        except ValueError:
+            print(f'{ValueError}')
+            pass
+    return table
+
+dados = converter_tipo(df)
+
+dados.to_json('dados_json.json')
