@@ -6,7 +6,7 @@ from numerize.numerize import numerize
 import plotly.express as px
 
 ##### Carregar e tratar os dados ######
-df = pd.read_excel('dadosAcoes.xlsx')
+df = pd.read_excel('dados_json2.xlsx')
 df = df.drop(index=df.index[0:4]).reset_index(drop=True)
 df = df[df['Papel'].notna() & (df['Papel'] != "")]
 
