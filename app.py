@@ -3,9 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
 from numerize.numerize import numerize
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 ##### Carregar e tratar os dados ######
@@ -48,7 +45,7 @@ def graph(data_selection, valor1, valor2=None, valor3=None):
         hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor1 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
         customdata=data1[['Cotação']]
     )
-    fig1.update_layout(hoverlabel=dict(bgcolor="yellow"))
+    fig1.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
     fig1.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor1}", height=600)
 
     if valor2 and valor2 in data_selection.columns:
@@ -58,7 +55,7 @@ def graph(data_selection, valor1, valor2=None, valor3=None):
             hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor2 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
             customdata=data2[['Cotação']]
         )
-        fig2.update_layout(hoverlabel=dict(bgcolor="yellow"))
+        fig2.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
         fig2.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor2}", height=600)
 
     if valor3 and valor3 in data_selection.columns:
@@ -68,7 +65,7 @@ def graph(data_selection, valor1, valor2=None, valor3=None):
             hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor3 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
             customdata=data3[['Cotação']]
         )
-        fig3.update_layout(hoverlabel=dict(bgcolor="yellow"))
+        fig3.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
         fig3.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor3}", height=600)
 
     # Plotagem dinâmica
@@ -145,7 +142,11 @@ with st.sidebar:
 #Pagina 1
 if selected == "Home":
     ########## SIDEBAR ##################
-    st.markdown("<h1 style='text-align: center;'>Dashboard - Indicadores</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <h1 style='text-align: center; background-color: #ff002f; color: white; padding: 10px; border-radius: 8px;'>
+        Dashboard - Indicadores
+    </h1>
+    """, unsafe_allow_html=True)
 
     st.sidebar.header("Filtros")
 
@@ -164,6 +165,8 @@ if selected == "Home":
         "(Setor in @setor or @setor == []) & "
         "(Subsetor in @subsetor or @subsetor == [])"
     )
+
+    Home(data_selection)
 
     st.markdown("<h3 style='text-align: center;'>Rentabilidade e Retorno</h3>", unsafe_allow_html=True)
     graph(data_selection, "P/L", "LPA", "Div. Yield")
@@ -194,7 +197,11 @@ if selected == "Home":
 #Pagina 2
 elif selected == "Histórico":
     ########## SIDEBAR ##################
-    st.markdown("<h1 style='text-align: center;'>Dashboard - Histórico de cotação</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <h1 style='text-align: center; background-color: #ff002f; color: white; padding: 10px; border-radius: 8px;'>
+        Dashboard - Histórico de cotação
+    </h1>
+    """, unsafe_allow_html=True)
 
     st.sidebar.header("Filtros")
     # Filtros primeiro!
