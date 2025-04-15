@@ -231,9 +231,63 @@ elif selected == "Histórico":
 
 #Pagina 2
 elif selected == "Contato":
-    st.title("Contato")
-    st.markdown("""
-    **Autor**: Samuel  
-    **Email**: samuelalvesribeiro111@gmail.com  
-    **LinkedIn**: [linkedin.com/in/samuel-alves-ribeiro](https://www.linkedin.com/in/samuel-alves-ribeiro-017960246/)
-    """)
+    st.title("📬 Formas de Contato")
+
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        st.markdown(
+            """
+            <div style="text-align: center;">
+                <p style="font-weight: bold; font-size: 18px;">GitHub</p>
+                <a href="https://github.com/SamuelA-R/SamuelA-R-scrapping_data_to_sqlserver" target="_blank">
+                    <img src="https://avatars.githubusercontent.com/u/9919?s=200&v=4" width="100" style="border-radius: 50%;">
+                </a>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+    with col2:
+        st.markdown("""
+        ### Samuel Alves Ribeiro  
+        Analista de Dados | Economista  
+
+        📧 **Email**: samuelalvesribeiro111@gmail.com  
+        """)
+
+        # Botão azul do LinkedIn
+        st.markdown(
+            """
+            <a href="https://www.linkedin.com/in/samuel-alves-ribeiro-017960246/" target="_blank">
+                <button style="background-color:#0A66C2; color:white; padding:10px 20px; border:none; border-radius:5px; font-size:16px; cursor:pointer;">
+                    Conectar no LinkedIn
+                </button>
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Botão do GitHub
+        st.markdown(
+            """
+            <a href="https://medium.com/@samuelalvesribeiro111" target="_blank">
+                <button style="background-color:#24292e; color:white; padding:10px 20px; border:none; border-radius:5px; font-size:16px; margin-top:10px; cursor:pointer;">
+                    🔗 Ver meu Medium
+                </button>
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.divider()
+
+    st.markdown(
+        """
+        Se tiver alguma dúvida ou quiser discutir um projeto, sinta-se à vontade para me enviar um e-mail ou me conectar no LinkedIn.  
+
+        O código completo deste projeto está disponível no meu GitHub. Clicando no botão acima você encontrará todo o código com explicações detalhadas no README.
+        """
+    )
+
