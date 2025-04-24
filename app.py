@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
 from numerize.numerize import numerize
 import plotly.express as px
+import pyodbc
 
 ##### Carregar e tratar os dados ######
 df = pd.read_excel('dados_json2.xlsx')
@@ -38,48 +39,34 @@ def Home(data_selection):
         st.write(data_selection[showData])
 
 
-def graph(data_selection, valor1, valor2=None, valor3=None):
-    data1 = data_selection[['Papel', valor1, 'Cotação']].dropna().sort_values(valor1, ascending=False).head(20)
-    fig1 = go.Figure(go.Bar(x=data1[valor1], y=data1["Papel"], orientation='h', marker=dict(color='teal')))
-    fig1.update_traces(
-        hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor1 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
-        customdata=data1[['Cotação']]
+def gerar_grafico(data, valor):
+    data_filtrada = data[['Papel', valor, 'Cotação']].dropna().sort_values(valor, ascending=False).head(20)
+    fig = go.Figure(go.Bar(
+        x=data_filtrada[valor],
+        y=data_filtrada["Papel"],
+        orientation='h',
+        marker=dict(color='teal'),
+        customdata=data_filtrada[['Cotação']],
+        hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}'
+    ))
+    fig.update_layout(
+        hoverlabel=dict(bgcolor="yellow", font_color="black"),
+        yaxis=dict(categoryorder="total ascending"),
+        title=f"Gráfico de {valor}",
+        height=600
     )
-    fig1.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
-    fig1.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor1}", height=600)
+    return fig
 
-    if valor2 and valor2 in data_selection.columns:
-        data2 = data_selection[['Papel', valor2, 'Cotação']].dropna().sort_values(valor2, ascending=False).head(20)
-        fig2 = go.Figure(go.Bar(x=data2[valor2], y=data2["Papel"], orientation='h', marker=dict(color='teal')))
-        fig2.update_traces(
-            hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor2 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
-            customdata=data2[['Cotação']]
-        )
-        fig2.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
-        fig2.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor2}", height=600)
+def graph(df_filtrado, col1, col2=None, col3=None):
+    colunas = [col1]
+    if col2: colunas.append(col2)
+    if col3: colunas.append(col3)
 
-    if valor3 and valor3 in data_selection.columns:
-        data3 = data_selection[['Papel', valor3, 'Cotação']].dropna().sort_values(valor3, ascending=False).head(20)
-        fig3 = go.Figure(go.Bar(x=data3[valor3], y=data3["Papel"], orientation='h', marker=dict(color='teal')))
-        fig3.update_traces(
-            hovertemplate='<b>Papel:</b> %{y}<br><b>' + valor3 + ':</b> 📈 %{x}<br><b>Cotação:</b> 💰 %{customdata[0]}',
-            customdata=data3[['Cotação']]
-        )
-        fig3.update_layout(hoverlabel=dict(bgcolor="yellow", font_color="black"))
-        fig3.update_layout(yaxis=dict(categoryorder="total ascending"), title=f"Gráfico de {valor3}", height=600)
-
-    # Plotagem dinâmica
-    if valor2 and valor3:
-        col1, col2, col3 = st.columns(3)
-        col1.plotly_chart(fig1, use_container_width=True)
-        col2.plotly_chart(fig2, use_container_width=True)
-        col3.plotly_chart(fig3, use_container_width=True)
-    elif valor2:
-        col1, col2 = st.columns(2)
-        col1.plotly_chart(fig1, use_container_width=True)
-        col2.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.plotly_chart(fig1, use_container_width=True)
+    cols = st.columns(len(colunas))
+    for i, col in enumerate(colunas):
+        with cols[i]:
+            fig = gerar_grafico(df_filtrado, col)
+            st.plotly_chart(fig, use_container_width=True)
 
 
 #grafico de linhas
@@ -181,7 +168,6 @@ if selected == "Home":
     st.markdown("<h3 style='text-align: center;'>Endividamento e Liquidez</h3>", unsafe_allow_html=True)
     graph(data_selection, "Dív. Líquida", "Dív. Bruta", "Liquidez Corr")
 
-
     st.markdown("<h3 style='text-align: center;'>Tamanho e Valor da Empresa</h3>", unsafe_allow_html=True)
     graph(data_selection, "Valor de mercado", "Valor da firma", "P/VP")
 
@@ -229,7 +215,7 @@ elif selected == "Histórico":
     line_graph(linha, 'Valor')
 
 
-#Pagina 2
+#Pagina 3
 elif selected == "Contato":
     st.title("📬 Formas de Contato")
 
@@ -290,4 +276,3 @@ elif selected == "Contato":
         O código completo deste projeto está disponível no meu GitHub. Clicando no botão acima você encontrará todo o código com explicações detalhadas no README.
         """
     )
-
