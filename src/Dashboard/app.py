@@ -2,14 +2,20 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
-from numerize.numerize import numerize
 import plotly.express as px
 import pyodbc
 
-##### Carregar e tratar os dados ######
-df = pd.read_excel('dados_json2.xlsx')
-df = df.drop(index=df.index[0:4]).reset_index(drop=True)
-df = df[df['Papel'].notna() & (df['Papel'] != "")]
+def conecta_ao_banco(driver='SQL Server', server='SAMUEL\\MSSQLSERVER01', database='Dados_scraping', trusted_connection="yes"):
+    string_conexao = f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};Trusted_Connection={trusted_connection};"
+    conexao = pyodbc.connect(string_conexao)
+    cursor = conexao.cursor()
+    return conexao, cursor
+
+conexao, cursor = conecta_ao_banco()
+print("Conexão estabelecida!")
+# Consultar a tabela 'ACOES' diretamente e criar o DataFrame
+query = "SELECT * FROM ACOES"
+df = pd.read_sql(query, conexao)
 
 def converter_tipo(table):
     for i in df.columns:
@@ -96,7 +102,7 @@ def line_graph(data_selection, valor):
 
 ########## MENU LATERAL #############
 with st.sidebar:
-    st.sidebar.image("bull.png", caption="Online Analytics from Fundamentus")
+    st.sidebar.image("bull-market.png", caption="Online Analytics from Fundamentus")
     #Imagem inicial
     selected = option_menu(
         menu_title=None,
@@ -178,7 +184,7 @@ if selected == "Home":
     graph(data_selection, "Receita Líquida", "Lucro Líquido", "EBIT")
 
     st.markdown("<h3 style='text-align: center;'>Evolução dos Últimos Anos</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Últimos 12 meses", "Receita Líquida_1", "Lucro Líquido_1")
+    graph(data_selection, "Receita Líquida_1", "Lucro Líquido_1")
 
 #Pagina 2
 elif selected == "Histórico":
