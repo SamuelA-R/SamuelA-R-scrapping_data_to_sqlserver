@@ -1,0 +1,8 @@
+requests==2.32.3
+beautifulsoup4==4.12.3
+streamlit==1.44.0
+pandas==2.2.3
+plotly==6.0.1
+streamlit-option-menu==0.4.0
+numerize==0.12
+pyodbc==5.2.0
