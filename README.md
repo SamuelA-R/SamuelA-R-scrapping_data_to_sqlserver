@@ -158,7 +158,7 @@ df.to_json('dados_json2.json')
 ```
 ## 2️⃣ Load: Integração dos dados no SQL Server
 - Nestá etapa, primeiro precisamos criar o nosso banco de dados no SQL Server. Para isso deixei o código SQL para criação do database e da tabela na pasta `SQL Server`.
-- Já criado o banco, iremos inserir os dados utilizando as seguintes bibliotecas:
+- Já criado o banco (você pode encontrar o comando no arquivo `CreateDatabase.sql`), iremos inserir os dados utilizando as seguintes bibliotecas:
 ```python
 import pyodbc
 import pandas as pd
