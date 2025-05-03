@@ -1,27 +1,28 @@
 # Web Scraping de Dados Financeiros Fundamentalista
 ### Objetivo: Extrair e tratar os dados, Armazená-los no SQL Server, analisar os dados e disponibilizá-los de forma clara para acesso e visualização de insights utilizando Streamlit
 
-📌 ***Tecnologias: Python (Requests, BeautifulSoup, Pandas, JSON), SQL SERVER para armazenar os dados e Streamlit (relatório para visualização dos dados).***
+***Tecnologias: Python (Requests, BeautifulSoup, Pandas, JSON), SQL SERVER para armazenar os dados e Streamlit (relatório para visualização dos dados).***
 
-🔹 ***Tarefas:**
+***Tarefas:**
 - Criar um scraper para coletar dados.  
 - Armazenar os dados extraídos em um banco do SQL Server.  
 - Criar uma API ou script que consulte o banco.  
 -	Analisar os dados utilizando Python e criar um relatório com Streamlit.
 
-🔗 ***Estrutura da Integração Python + SQL + Streamlit***
-✅ Python → Extração, tratamento avançado e automação
-✅ SQL → Armazenamento, integração e otimização de consultas
-✅ Streamlit → Visualização e análise interativa
+***Estrutura da Integração Python + SQL + Streamlit***
+- ✅ Python → Extração, tratamento avançado e automação
+- ✅ SQL → Armazenamento, integração e otimização de consultas
+- ✅ Streamlit → Visualização e análise interativa
 
-📌 Fluxo do Processo:
+Fluxo do Processo:
 1.	Python: Extrai, trata e carrega os dados no banco SQL.
-2.	SQL: Armazena, processa e otimiza consultas.
+2.	SQL: Cria, processa e otimiza consultas.
 3.	Streamlit: Conecta-se ao banco e visualiza os dados.
 
 ## 1️⃣ Extraction and transform: Scraping com Python
 ### Scraping das ações listadas na bolsa de valor
 - Iniciaremos extraindo os dados de todas as ações listadas na bolsa de valores. Para isso será necessária as seguintes bibliotecas:
+
 
 ```python
 import requests
@@ -32,19 +33,19 @@ import pandas as pd
 import time
 import json
 ```
-- requests: para fazer requisições `HTTP` ao site.
+    - requests: para fazer requisições `HTTP` ao site.
 
-- BeautifulSoup: para fazer o parsing do `HTML` e extrair os dados.
+    - BeautifulSoup: para fazer o parsing do `HTML` e extrair os dados.
 
-- sleep (do time): para pausar o código por um tempo definido (ex: sleep(1) pausa por 1 segundo).
+    - sleep (do time): para pausar o código por um tempo definido (ex: sleep(1) pausa por 1 segundo).
 
-- datetime: para trabalhar com datas e horas (ex: pegar a data atual com datetime.now()).
+    - datetime: para trabalhar com datas e horas (ex: pegar a data atual com datetime.now()).
 
-- pandas: para transformar os dados em um DataFrame e facilitar a análise.
+    - pandas: para transformar os dados em um DataFrame e facilitar a análise.
 
-- time: para pausar entre requisições (evitando bloqueios) e medir tempo de execução.
+    - time: para pausar entre requisições (evitando bloqueios) e medir tempo de execução.
 
-- json: para trabalhar com dados no formato `JSON` (como salvar e carregar dicionários).
+    - json: para trabalhar com dados no formato `JSON` (como salvar e carregar dicionários).
   
 - Precisamos definir a `URL` da página que será acessada e os cabeçalhos para simular um navegador são definidos, no meu caso:
 ```python
@@ -83,7 +84,7 @@ with open("acoes.txt", "w") as f:
 ### Scraping dos dados Fundamentus
 - Extração dos dados fundamentalistas que vamos analisar
 - Utilizaremos o metodo `with` para ler os tickers extraidos
-- 
+
 ```python
 with open("acoes.txt", "r") as fundamentus_file:
     lista_acoes = fundamentus_file.read().split()
@@ -102,55 +103,119 @@ em pares: o nome do indicador (`chave`) e o valor correpondente, já realizando 
 chave com um sufixo numérico para evitar sobrescrita. Ao final do processo para uma ação, todas as informações coletadas são armazenadas em um dicionário e adicionadas à lista `dados_json`, que armazenará os dados de todas as ações consultadas.
 Esse processo se repete para cada ticker da lista, com uma pequena pausa (`sleep`) ao final de cada iteração para evitar que o site bloqueie as requisições por excesso de acessos em pouco tempo.
 ```python
+# Loop sobre cada ação para extrair os dados
 for acao in lista_acoes:
     url = f"https://www.fundamentus.com.br/detalhes.php?papel={acao}"
     
-    # Faz a requisição HTTP para o site da Fundamentus
+    # requisição
     page = requests.get(url, headers=headers)
     
     if page.status_code == 200:
         soup = BeautifulSoup(page.text, 'html.parser')
         
-        # Seleciona todas as tabelas com a classe 'w728' (onde ficam os dados financeiros)
         tabelas = soup.select("table.w728")
         
-        # Cria um dicionário para armazenar os dados da ação atual
-        dados_dict = {'Ticker': acao}
+        dados_dict = {'Ticker': acao}  # Inclui o ticker como chave
 
-        for tabela in tabelas:
-            linhas = tabela.find_all('tr')  # Encontra todas as linhas da tabela
-            for linha in linhas:
-                colunas = linha.find_all('td')  # Encontra todas as colunas da linha
+        for tabela in tabelas:  
+            linhas = tabela.find_all('tr')  
+            for linha in linhas:  
+                colunas = linha.find_all('td')  
                 if colunas:
-                    # Percorre os pares de colunas (indicador e valor)
                     for i in range(0, len(colunas), 2):
                         if i + 1 < len(colunas):
-                            # Extrai e limpa o nome do indicador
-                            chave = colunas[i].get_text(strip=True).replace('?', '')  # remove espaços e interrogação
-
-                            # Extrai e trata o valor:
-                            valor = colunas[i + 1].get_text(strip=True) \
-                                .replace('-', '0')      # substitui traços por zero
-                                .replace('.', '')        # remove pontos (milhares)
-                                .replace(',', '.')       # troca vírgula por ponto (notação decimal)
-                                .replace('%', '')        # remove o símbolo de porcentagem
+                            chave = colunas[i].get_text(strip=True).replace('?', '')
+                            valor = colunas[i + 1].get_text(strip=True).replace('.', '').replace(',','.').replace('%', '')
                             
-                            # Evita duplicidade de chave no dicionário (ex: "LUCRO LIQUIDO" aparecendo mais de uma vez, onde um faz parte dos últimos 3 meses e outro dos últimos 12)
+                            # Verificando se a chave já existe no dicionário e modificando o nome da chave
                             if chave in dados_dict:
                                 contador = 1
                                 while f"{chave}_{contador}" in dados_dict:
                                     contador += 1
                                 chave = f"{chave}_{contador}"
 
-                            # Adiciona o par chave: valor ao dicionário da ação
-                            dados_dict[chave] = valor
+                            dados_dict[chave] = valor  
 
-        # Adiciona o dicionário completo da ação à lista final
         dados_json.append(dados_dict)
+    
+    else:
+        print(f"Erro ao acessar {acao}: {page.status_code}")
+```
+- Agora, convetemos os dados para dataframe para que possamos tratalos e carregamos com pandas.
+```python
+json_data = json.dumps(dados_json, ensure_ascii=False)
+df = pd.read_json(json_data, orient="records")
+```
+- Agora excluiremos as quatro primeiras linhas do dataframe que possui dados inuteis adicionadas na extração e excluiremos as colunas `Osciações` e `últimos 12 meses` e, por fim, vamos retirar os dados de ações não encontradas de nosso dataframe e salvar novamente no formato `JSON` para inserir os dados em nosso BD.
+```python
+# Remover as primeiras 4 linhas e resetar o índice
+df = df.drop(index=df.index[0:4]).reset_index(drop=True)
+df = df.drop(columns=['Oscilações', '', 'Últimos 12 meses', ]) # Remove as colunas inuteis criadas na hora do scraping
+df = df[df['Papel'].notna() & (df['Papel'] != "")] # Retira as colunas de papeis não encontrados
+
+
+df.to_json('dados_json2.json')
 ```
 ## 2️⃣ Load: Integração dos dados no SQL Server
+- Nestá etapa, primeiro precisamos criar o nosso banco de dados no SQL Server. Para isso deixei o código SQL para criação do database e da tabela na pasta `SQL Server`.
+- Já criado o banco, iremos inserir os dados utilizando as seguintes bibliotecas:
+```python
+import pyodbc
+import pandas as pd
+```
+    - pyodbc: para conectar-se ao banco de dados e inserir os dados na tabela:
+    - pandas: para converter o arquivo salvo `JSON` em dataframe para que possamos interar sobre os dados e inserir em nosso `SGDB`.
 
-########################## FALAR AQUI SOBRE A CONEXÃO AOS DADOS VIA ODBC
+- Primeiro criaremos a nossa função `conecta_ao_banco` de dados
+```python
+def conecta_ao_banco(driver='SQL Server', server='SAMUEL\\MSSQLSERVER01', database='Dados_scraping', trusted_connection="yes"):
+    string_conexao = f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};Trusted_Connection={trusted_connection};"
+    conexao = pyodbc.connect(string_conexao)
+    cursor = conexao.cursor()
+    return conexao, cursor
+```
+- Ela recebe como parâmetros o `driver`, o `servidor`, o `nome do banco de dados` e se a conexão é autenticada pelo Windows (`via Trusted_Connection`).
+- A string de conexão (`string_conexao`) é montada com esses parâmetros e, em seguida, o pyodbc.connect é usado para abrir a conexão.
+
+- Por fim, a função retorna dois objetos:
+    - conexao: o objeto de conexão com o banco;
+    - cursor: o objeto que permite executar comandos `SQL` dentro dessa conexão.
+
+- Agora, vamos inserior os dados em nosso banco.
+- Primeiro criaremos nossa função `try` que vai "tentar" realizar a conexão com nosso banco.
+```python
+try:
+    conexao, cursor = conecta_ao_banco()
+    print("Conexão estabelecida!")
+```
+- Agora vamos armazenar o nome das colunas do nosso dataframe (que são as mesmas que criamos no SQL Server em SQL).
+``` python
+nomes_colunas = ", ".join(f"[{col}]" for col in dados.columns)
+```
+- Agora geramos os placeholders para cada valor de coluna (placeholders são espaços reservados (?) usados na query SQL para inserir os valores de forma segura e automática).
+```python
+placeholders = ", ".join("?" for _ in dados.columns)
+```
+- Agora inserimos os dados do Dataframe nas colunas existentes da tabela utilizando a função `FOR`:
+```python
+for _, row in dados.iterrows():
+  # aqui estamos pegando os valores da linha e substituindo qualquer NaN por None
+  valores = tuple(row[col] if pd.notna(row[col]) else None for col in dados.columns)
+        
+  # monta a query de inserção
+  query = f"INSERT INTO ACOES ({nomes_colunas}) VALUES ({placeholders})"
+        
+  # executa a query passando os valores da linha
+  cursor.execute(query, valores)
+  # confirma as alterações no banco
+  conexao.commit()
+  print("Dados inseridos com sucesso!")
+```
+- Por fim, caso de erro, utilizamos o except, printando o erro para que possamos corrigir caso ocorra:
+```python
+except Exception as e:
+    print("Erro:", e)
+```
 
 ## 3️⃣ Dashboard: Relatório no Streamlit
 - Será necessária as seguintes bibliotecas:
@@ -160,17 +225,31 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
-from numerize.numerize import numerize
 import plotly.express as px
 import pyodbc
 ```
-Utilidades de cada biblioteca:
-- Streamlit: construir a interface web
-- Pandas: manipular os dados para análise
-- Plotly (go e express): criar gráficos para a análise
-- Streamlit_option_menu: criar menu de botões com multiplas páginas
-- Numerize: é utilizado para abreviar os números(exemplos: 1.5M. 200K e etc.)
-- pyodbc: conectar-se ao banco de dados SQL Server
+    Utilidades de cada biblioteca:
+    - Streamlit: construir a interface web
+    - Pandas: manipular os dados para análise
+    - Plotly (go e express): criar gráficos para a análise
+    - Streamlit_option_menu: criar menu de botões com multiplas páginas
+    - pyodbc: conectar-se ao banco de dados SQL Server e carregar os dados
+
+- Iniciamos conctando ao banco de dados e realizando a query de todos os dados de nossa tabela ACOES criada. Após isso armazenamos os dados como dataframe na variável df
+
+```python
+def conecta_ao_banco(driver='SQL Server', server='SAMUEL\\MSSQLSERVER01', database='Dados_scraping', trusted_connection="yes"):
+    string_conexao = f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};Trusted_Connection={trusted_connection};"
+    conexao = pyodbc.connect(string_conexao)
+    cursor = conexao.cursor()
+    return conexao, cursor
+
+conexao, cursor = conecta_ao_banco()
+print("Conexão estabelecida!")
+# Consultar a tabela 'ACOES' diretamente e criar o DataFrame
+query = "SELECT * FROM ACOES"
+df = pd.read_sql(query, conexao)
+```
 
 Ao fazermos o carregamento dos dados, primeiro convertemos as colunas númericas para o tipo float
 ```python
@@ -276,7 +355,7 @@ def line_graph(data_selection, valor):
 ```python
 ########## MENU LATERAL #############
 with st.sidebar:
-    st.sidebar.image("bull.png", caption="Online Analytics from Fundamentus")
+    st.sidebar.image("bull-market.png", caption="Online Analytics from Fundamentus")
     #Imagem inicial
     selected = option_menu(
         menu_title=None,
@@ -305,73 +384,58 @@ with st.sidebar:
 ```
 - Criação da página "Home"
 ```python
-# Página principal: "Home"
 if selected == "Home":
-
-    ########## TÍTULO DA PÁGINA ##########
+    ########## SIDEBAR ##################
     st.markdown("""
     <h1 style='text-align: center; background-color: #ff002f; color: white; padding: 10px; border-radius: 8px;'>
         Dashboard - Indicadores
     </h1>
-    """, unsafe_allow_html=True)  # Título foi estilizado com HTML
+    """, unsafe_allow_html=True)
 
-    ########## SIDEBAR COM FILTROS ##########
-    st.sidebar.header("Filtros")  # Título da barra lateral
+    st.sidebar.header("Filtros")
 
-    # Essa parte do código cria filtros interativos na barra lateral para seleção de dados
-    acoes_filtro = slidebar_filtro(dados['Papel'], "Ações")         # Filtro de ações
-    tipo_empresa = slidebar_filtro(dados['Tipo'], "Tipo")           # Filtro por tipo (ex: ON, PN, UNIT)
-    empresa = slidebar_filtro(dados['Empresa'], "Empresa")          # Filtro por nome da empresa
-    setor = slidebar_filtro(dados['Setor'], "Setor")                # Filtro por setor
-    subsetor = slidebar_filtro(dados['Subsetor'], "Subsetor")       # Filtro por subsetor
+    # Filtros primeiro!
+    acoes_filtro = slidebar_filtro(dados['Papel'], "Ações")
+    tipo_empresa = slidebar_filtro(dados['Tipo'], "Tipo")
+    empresa = slidebar_filtro(dados['Empresa'], "Empresa")
+    setor = slidebar_filtro(dados['Setor'], "Setor")
+    subsetor = slidebar_filtro(dados['Subsetor'], "Subsetor")
 
-    ########## APLICAÇÃO DOS FILTROS ##########
-    # Usa .query() para filtrar os dados conforme os filtros selecionados
+    # Depois dos filtros, aplicamos a filtragem
     data_selection = dados.query(
-        "(Papel in @acoes_filtro or @acoes_filtro == []) & "       # Se filtro vazio, considera todos
+        "(Papel in @acoes_filtro or @acoes_filtro == []) & "
         "(Tipo in @tipo_empresa or @tipo_empresa == []) & "
         "(Empresa in @empresa or @empresa == []) & "
         "(Setor in @setor or @setor == []) & "
         "(Subsetor in @subsetor or @subsetor == [])"
     )
 
-    ########## TABELA DE DADOS ##########
-    Home(data_selection)  # Mostra uma tabela com os dados filtrados (provavelmente com colunas selecionáveis)
+    Home(data_selection)
 
-    ########## GRÁFICOS POR CATEGORIA ##########
-
-    # --- RENTABILIDADE E RETORNO ---
     st.markdown("<h3 style='text-align: center;'>Rentabilidade e Retorno</h3>", unsafe_allow_html=True)
-    graph(data_selection, "P/L", "LPA", "Div. Yield")  # Gráfico com P/L, Lucro por Ação e Dividend Yield
+    graph(data_selection, "P/L", "LPA", "Div. Yield")
 
-    # --- MARGENS E AVALIAÇÃO ---
     st.markdown("<h3 style='text-align: center;'>Margens e Avaliação</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Marg. EBIT", "EV / EBIT")  # Margem EBIT e múltiplo EV/EBIT
-    graph(data_selection, "ROE", "ROIC", "EBIT / Ativo")  # Indicadores de rentabilidade sobre capital/ativo
+    graph(data_selection, "Marg. EBIT", "EV / EBIT")
+    graph(data_selection, "ROE", "ROIC", "EBIT / Ativo")
 
-    # --- EFICIÊNCIA OPERACIONAL ---
     st.markdown("<h3 style='text-align: center;'>Eficiência Operacional</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Marg. Bruta", "Marg. Líquida", "Giro Ativos")  # Margens e giro de ativos
+    graph(data_selection, "Marg. Bruta", "Marg. Líquida", "Giro Ativos")
 
-    # --- ENDIVIDAMENTO E LIQUIDEZ ---
     st.markdown("<h3 style='text-align: center;'>Endividamento e Liquidez</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Dív. Líquida", "Dív. Bruta", "Liquidez Corr")  # Indicadores de dívida e liquidez
+    graph(data_selection, "Dív. Líquida", "Dív. Bruta", "Liquidez Corr")
 
-    # --- TAMANHO E VALOR DE MERCADO ---
     st.markdown("<h3 style='text-align: center;'>Tamanho e Valor da Empresa</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Valor de mercado", "Valor da firma", "P/VP")  # Avaliação de mercado e múltiplos
+    graph(data_selection, "Valor de mercado", "Valor da firma", "P/VP")
 
-    # --- AVALIAÇÃO POR ATIVOS ---
     st.markdown("<h3 style='text-align: center;'>Avaliação por Ativos</h3>", unsafe_allow_html=True)
-    graph(data_selection, "P/Ativos", "P/Cap. Giro", "P/Ativ Circ Liq")  # Avaliação com base nos ativos
+    graph(data_selection, "P/Ativos", "P/Cap. Giro", "P/Ativ Circ Liq")
 
-    # --- DESEMPENHO OPERACIONAL ---
     st.markdown("<h3 style='text-align: center;'>Desempenho Operacional</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Receita Líquida", "Lucro Líquido", "EBIT")  # Medidas reais de desempenho financeiro
+    graph(data_selection, "Receita Líquida", "Lucro Líquido", "EBIT")
 
-    # --- EVOLUÇÃO TEMPORAL ---
     st.markdown("<h3 style='text-align: center;'>Evolução dos Últimos Anos</h3>", unsafe_allow_html=True)
-    graph(data_selection, "Últimos 12 meses", "Receita Líquida_1", "Lucro Líquido_1")  # Indicadores históricos
+    graph(data_selection, "Receita Líquida_1", "Lucro Líquido_1")
 ```
 - Na página "Histórico", criamos os mesmos filtros da página anterior para permitir a seleção dos dados. Em seguida, utilizamos a função `melt` para criar a variável linha, que transforma as colunas de anos (como 2020, 2021, etc.) em linhas. Isso reorganiza os dados no formato ideal para construir o gráfico de linhas com a evolução das cotações ao longo do tempo.
 
@@ -384,11 +448,6 @@ elif selected == "Histórico":
 
     line_graph(linha, 'Valor')
 ```
-### Disponibilizando o relatório no streamlit
-
-
-
-
 
 
 📌 **Para eventuais dúvidas, conecte-se comigo no LinkedIn:**  
