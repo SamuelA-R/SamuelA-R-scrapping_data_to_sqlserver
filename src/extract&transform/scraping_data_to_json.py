@@ -61,23 +61,10 @@ json_data = json.dumps(dados_json, ensure_ascii=False)
 # Carregar JSON
 df = pd.read_json(json_data, orient="records")
 
-
-#-------------------------------- Tratamento dos dados ---------------------------------------#
-
 # Remover as primeiras 4 linhas e resetar o índice
 df = df.drop(index=df.index[0:4]).reset_index(drop=True)
-df = df[df['Papel'].notna() & (df['Papel'] != "")]
+df = df.drop(columns=['Oscilações', '', 'Últimos 12 meses', ]) # Remove as colunas inuteis criadas na hora do scraping
+df = df[df['Papel'].notna() & (df['Papel'] != "")] # Retira as colunas de papeis não encontrados
 
-def converter_tipo(table):
-    for i in df.columns:
-        try:
-            table[i] = table[i].astype(float)
 
-        except ValueError:
-            print(f'{ValueError}')
-            pass
-    return table
-
-dados = converter_tipo(df)
-
-dados.to_excel('dados_json2.xlsx')
+df.to_json('dados_json2.json')
