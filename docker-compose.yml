@@ -1,0 +1,15 @@
+services:
+  app:
+    container_name: webscraping
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=America/Sao_Paulo
+    # Monta seu código local dentro do mesmo caminho definido no WORKDIR do Dockerfile
+    volumes:
+      - .:/mnt/c/projetos-paralelos-samuel/projeto-webscraping-sqlserver:cached
+    restart: unless-stopped
